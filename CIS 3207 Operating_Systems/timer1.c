@@ -51,7 +51,7 @@ the time difference to the appropriate file.*/
 #include <sys/time.h>
 #include <time.h>
 
-#define ITERATIONS 50 //definitive number of iterations for the histogram.
+#define ITERATIONS 1000 //definitive number of iterations for the histogram.
 
 int main(void)
 {
@@ -72,10 +72,6 @@ int main(void)
   	  pid_t pid;
   	  struct timeval start;
   	  gettimeofday(&start, NULL);
-      FILE* times1;
-      times1 = fopen(timerFile1, "a");
-      fprintf(times1, "%ld\n", start.tv_usec);
-      fclose(times1);
 
   	  pid = fork(); //forked process
 
@@ -86,15 +82,16 @@ int main(void)
 
   		else if(pid == 0) //child Process
   		{
-        char fileName[] = "file1.txt"; //specific file name for the application to handle
-
-        printf("Start: %ld\n", start.tv_usec); //prints the start time to the screen
-        execlp("./application", "application", "fileName", "times1.txt", "1", NULL); //executes application with the following arguments
+        execlp("./application", "application", "file1.txt", "times1.txt", "1", NULL); //executes application with the following arguments
         printf("FAILED\n");
   		}
 
   		else //parent process
   		{
+        FILE* times1;
+        times1 = fopen(timerFile1, "a");
+        fprintf(times1, "%ld\n", start.tv_usec);
+        fclose(times1);
         waitpid(pid, 0, WCONTINUED); //lets child process completely finished before moving onto this process.
   		}
 
@@ -114,10 +111,16 @@ int main(void)
   fclose(fp);
 
   int m;
-  printf("%s", "Differences for Timer\n"); //printed to the screen
+  FILE* diff;
+  diff = fopen("Differences1.txt", "w");
+  fclose(diff);
+  diff = fopen("Differences1.txt", "a+");
+
+  //printf("%s", "Differences for Timer\n"); //printed to the screen
   for(m = 0; m < ITERATIONS; m++)
   {
-  printf("%d\n", differenceArray[1][m] - differenceArray[0][m]); //prints the difference to the screen with end - start. 
+    //printf("%d\n", abs(differenceArray[1][m] - differenceArray[0][m])); //prints the difference to the screen with end - start.
+    fprintf(diff, "%d\n", abs(differenceArray[1][m] - differenceArray[0][m]));
   }
 
 }

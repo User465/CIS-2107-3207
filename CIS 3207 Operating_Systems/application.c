@@ -58,21 +58,11 @@ void compareRecords(FILE* fp, char records[10][120]); //finds a specific record 
 
 int main(int argc, char* argv[]) //the arguments are taken from the timer1 and timer2 programs
 {
+  struct timeval end; //end time needed for timer1 and timer2
+  gettimeofday(&end, NULL); //gets the time of day in relation to the current time, rather than clock
+
   srand(time(NULL)); //needed for the randomCharacterGenerator
   int i;
-  struct timeval end; //end time needed for timer1 and timer2
-
-  gettimeofday(&end, NULL); //gets the time of day in relation to the current time, rather than clock
-  printf("End Time %s: %ld\n", argv[3], end.tv_usec); //prints the end time to the screen to show success.
-
-  /*The following four statements are used to open
-    the time file for the specific program, and
-    write the end time to it before closing it.*/
-  FILE* times;
-  times = fopen(argv[2], "a+");
-  fprintf(times, "%d\n", (int) end.tv_usec);
-  fclose(times);
-
 
     FILE* initialFile; //file that contains the records
     FILE* recordReader; //file that reads the initialFile to compare a specific record
@@ -100,15 +90,15 @@ int main(int argc, char* argv[]) //the arguments are taken from the timer1 and t
 
   int fileRemoved;
   fileRemoved = remove(argv[1]); //used to remove the file specified by timer1 and timer2.
+  printf("%s", "file successfully removed");
 
-   if(fileRemoved == 0)
-   {
-      printf("\n"); //succession of file deletion
-   }
-   else
-   {
-      printf("...\n"); //file is deleted anyways, so 3 dots are returned.
-   }
+   /*The following four statements are used to open
+     the time file for the specific program, and
+     write the end time to it before closing it.*/
+   FILE* times;
+   times = fopen(argv[2], "a+");
+   fprintf(times, "%d\n", (int) end.tv_usec);
+   fclose(times);
 
 }
 
@@ -190,6 +180,6 @@ void compareRecords(FILE* fp, char records[10][120])
 
   }
 
-  fclose(comparisons); //closes the file after the comparisons are made. With each loop run, the comparisons are constantly replaced. 
+  fclose(comparisons); //closes the file after the comparisons are made. With each loop run, the comparisons are constantly replaced.
 
 }
