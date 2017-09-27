@@ -22,52 +22,73 @@ Input/Output of Each Function
 
 #define arrSize 1024
 
-int prompt();
+char* readALine();
+void printHostName();
+void evaluate(char *line);
+void parseLine(char *line, char* argv[arrSize]);
 
 int main(int argc, char* argv[])
 {
+  char *lineInput;
   while(1) {
-    int a = prompt();
-    if(a == EXIT_SUCCESS)
+    printHostName();
+    lineInput = readALine();
+    if(strcmp(lineInput, "exit\n") == 0 || feof(stdin))
     {
+      puts(" ");
       return EXIT_SUCCESS;
     }
+    evaluate(lineInput);
   } //end while
 }
 
-int prompt()
+char *readALine()
 {
-  char* argv[arrSize];
-  char hostname[arrSize];
   char input[arrSize];
-  char *token;
-  const char t[] = {" -/\n"};
-  gethostname(hostname, arrSize);
-  printf("%s~>", hostname);
+  char *lineRead;
 
-  if(fgets(input, sizeof(input), stdin) == NULL){
-    puts(" ");
-    return EXIT_SUCCESS;
+  fgets(input, sizeof(input), stdin);
+  lineRead = input;
+  return lineRead;
+}
+
+void printHostName()
+{
+  char hostname[arrSize];
+  char cwd[1024];
+  if (getcwd(cwd, sizeof(cwd)) != NULL)
+  {
+    gethostname(hostname, arrSize);
+    printf("%s%s~>", hostname, cwd);
   }
-  token = strtok(input, t);
+   else
+       perror("getcwd() error");
+}
 
+void evaluate(char *line)
+{
+  char* argv[arrSize]; //array of pointers to chars
+
+  parseLine(line, argv);
+
+  //rest of code!
+
+}
+
+void parseLine(char *line, char* argv[arrSize])
+{
+  char* token;
+  const char t[] = {" -/\n"};
   int counter = 0;
+
+  token = strtok(line, t);
   argv[counter] = token;
   counter++;
 
-  if (strcmp(token, "exit") == 0 || feof(stdin)) {
-    return EXIT_SUCCESS;
-  }
-
-  while (token != NULL) {
+  while (token != NULL)
+  {
     token = strtok(NULL, t);
     argv[counter] = token;
     counter++;
   }
-
-  // printf("you entered: ");
-  // int i;
-  // for (i = 0; i < counter - 1; ++i) {
-  //     printf("%s ", argv[i]);
-
-}//end while
+}
