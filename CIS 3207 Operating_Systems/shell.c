@@ -24,13 +24,12 @@ Input/Output of Each Function
 #include "builtin.h"
 
 #define arrSize 1024
-#define commandSize 7
 
 char* readALine();
 void printHostName();
 int evaluate(char *line);
 void parseLine(char *line, char* argv[arrSize]);
-void forkProgram();
+void forkProgram(char* argv[arrSize]);
 int runBuiltIn(char* argv[arrSize]);
 
 int main(int argc, char* argv[])
@@ -74,22 +73,22 @@ void printHostName()
 int evaluate(char *line)
 {
   char* argv[arrSize]; //array of pointers to chars
-
   parseLine(line, argv);
+  int a = isBuiltIn(argv);
 
   if(argv[0] == NULL)
   {
     return 0; //ignore empty lines
   }
 
-  if (isBuiltIn(argv) == 1)
+  if (a == 1)
   {
     runBuiltIn(argv);
   }
-  else
+  else if (a == 0)
   {
-    printf("%s", "\n");
-    //forkProgram();
+    printf("%s", "hey");
+    forkProgram(argv);
     return 1;
   }
   return 1;
@@ -116,7 +115,7 @@ void parseLine(char *line, char* argv[arrSize])
 int runBuiltIn(char* argv[arrSize])
 {
   int i;
-  for(i = 0; i < commandSize; i++)
+  for(i = 0; i < sizeof(builtin_command) / sizeof(builtin_command[0]); i++)
   {
     if(strcmp(argv[0], builtin_command[i]) == 0)
     {
@@ -124,4 +123,35 @@ int runBuiltIn(char* argv[arrSize])
     }
   }
   return 0;
+}
+
+void forkProgram(char* argv[arrSize])
+{
+  pid_t pid;
+  pid = fork();
+
+  if(pid < 0)
+  {
+    printf("%s", "Error, can't fork");
+  }
+
+  else if(pid == 0) //child process
+  {
+    if(execvp(argv[0], argv) < 0)
+    {
+      printf("%s: Command not found", argv[0]);
+      exit(0);
+    }
+  }
+
+  else //parent process
+  {
+    int status;
+    if(waitpid(pid, &status, 0) < 0)
+    {
+      printf("%s", "ERROR");
+    }
+  }
+
+
 }

@@ -12,12 +12,9 @@ int shell_environ(char **args);
 int shell_echo(char **args);
 int shell_help(char **args);
 int shell_pause(char **args);
-int shell_quit(char **args);
 
 int isBuiltIn(char* argv[]);
-#define commandSize 7
 extern char **environ;
-
 
 char* builtin_command[] =
 {
@@ -44,7 +41,7 @@ int (*builtin_function[])(char **) =
 int isBuiltIn(char* argv[])
 {
   int i;
-  for(i = 0; i < sizeof(*builtin_command); i++)
+  for(i = 0; i < sizeof(builtin_command) / sizeof(builtin_command[0]); i++)
   {
     if(strcmp(argv[0], builtin_command[i]) == 0)
     {
