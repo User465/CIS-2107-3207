@@ -11,7 +11,7 @@ Input/Output of Each Function
 **Include discussion of each possible function return value
 
 */
-
+#include <sys/wait.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,26 +19,32 @@ Input/Output of Each Function
 #include <sys/time.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include "builtin.h"
 
 #define arrSize 1024
+#define commandSize 7
 
 char* readALine();
 void printHostName();
-void evaluate(char *line);
+int evaluate(char *line);
 void parseLine(char *line, char* argv[arrSize]);
+void forkProgram();
+int runBuiltIn(char* argv[arrSize]);
 
 int main(int argc, char* argv[])
 {
   char *lineInput;
+  system("clear");
   while(1) {
     printHostName();
     lineInput = readALine();
-    if(strcmp(lineInput, "exit\n") == 0 || feof(stdin))
+    if(strcmp(lineInput, "quit\n") == 0 || feof(stdin))
     {
-      puts(" ");
       return EXIT_SUCCESS;
     }
-    evaluate(lineInput);
+    int a = evaluate(lineInput);
   } //end while
 }
 
@@ -65,14 +71,28 @@ void printHostName()
        perror("getcwd() error");
 }
 
-void evaluate(char *line)
+int evaluate(char *line)
 {
   char* argv[arrSize]; //array of pointers to chars
 
   parseLine(line, argv);
 
-  //rest of code!
+  if(argv[0] == NULL)
+  {
+    return 0; //ignore empty lines
+  }
 
+  if (isBuiltIn(argv) == 1)
+  {
+    runBuiltIn(argv);
+  }
+  else
+  {
+    printf("%s", "\n");
+    //forkProgram();
+    return 1;
+  }
+  return 1;
 }
 
 void parseLine(char *line, char* argv[arrSize])
@@ -91,4 +111,17 @@ void parseLine(char *line, char* argv[arrSize])
     argv[counter] = token;
     counter++;
   }
+}
+
+int runBuiltIn(char* argv[arrSize])
+{
+  int i;
+  for(i = 0; i < commandSize; i++)
+  {
+    if(strcmp(argv[0], builtin_command[i]) == 0)
+    {
+      return (*builtin_function[i])(argv);
+    }
+  }
+  return 0;
 }

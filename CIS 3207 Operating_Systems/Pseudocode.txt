@@ -1,0 +1,86 @@
+
+int prompt();
+void printHostName();
+
+int main(int argc, char* argv[])
+{
+  while(true) {
+    printHostName()
+    char *a = prompt();
+    if(a contains pipe)
+    {
+      check if built in
+
+      if not a built in command{
+      fork()
+
+      if(child process){
+      if(built in command){
+      run built in command
+      dup(first command, second command)
+      }
+      }
+
+      else if(parent process){
+      wait for child
+      }
+      return EXIT_SUCCESS;
+      }
+
+      else if(it is a builtin){
+      run the builtin command
+      }
+    }
+
+    else{ //not a pipe
+    if(built in argument){
+    call built in argument
+    }
+    else if(not a built in argument){
+    fork()
+    if(child process){
+    exec command
+    }
+    else if(parent command){
+    wait for child
+    }
+    }
+    }
+  } //end while
+}
+
+char *prompt()
+{
+  char* argv[arrSize];
+  char input[arrSize];
+  char *token;
+  const char t[] = {" -/\n"};
+
+  printHostName();
+
+  fgets(input, sizeof(input), stdin);
+  token = strtok(input, t);
+
+  int counter = 0;
+  argv[counter] = token;
+  counter++;
+
+  if (token matches "exit" || EOF) {
+    return token;
+  }
+
+  while (token != NULL) {
+    token = strtok(NULL, t);
+    argv[counter] = token;
+    counter++;
+  }
+
+
+}
+
+void printHostName()
+{
+  char hostname[arrSize];
+  gethostname(hostname, arrSize);
+  printf("%s~>", hostname);
+}
