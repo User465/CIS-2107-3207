@@ -1,15 +1,10 @@
 /*
 Abstract of Approach
-
 Techniques Used
-
 Outline of Main Tasks of Each Process/Thread
-
 Outline of Each Major Routine in Process/Thread
-
 Input/Output of Each Function
 **Include discussion of each possible function return value
-
 */
 #include <sys/wait.h>
 #include <stdio.h>
@@ -18,33 +13,63 @@ Input/Output of Each Function
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include "builtin.h"
 
 #define arrSize 1024
+#define commandSize 7
 
 char* readALine();
 void printHostName();
 int evaluate(char *line);
 void parseLine(char *line, char* argv[arrSize]);
-void forkProgram(char* argv[arrSize]);
+void forkProgram();
 int runBuiltIn(char* argv[arrSize]);
+void redirect(char* argv[arrSize], int flag, int i);
+int isReDirect(char* argv[arrSize]);
+
+int actualLength;
+
 
 int main(int argc, char* argv[])
 {
-  char *lineInput;
-  system("clear");
-  while(1) {
-    printHostName();
-    lineInput = readALine();
-    if(strcmp(lineInput, "quit\n") == 0 || feof(stdin))
+     if(argc > 1)
     {
-      return EXIT_SUCCESS;
+      FILE *fp;
+      char* arrayInput[arrSize];
+      char *commandFile[] = {"batchfile.txt"};
+      char input[arrSize];
+      char *lineRead;
+
+      fp = fopen(commandFile[0], "r");
+
+      fgets(input, sizeof(input), fp);
+      fclose(fp);
+      lineRead = input;
+
+      int b = evaluate(lineRead);
     }
-    int a = evaluate(lineInput);
-  } //end while
+
+  else
+  {
+    char *lineInput;
+    system("clear");
+    while(1)
+    {
+      printHostName();
+      lineInput = readALine();
+      if(strcmp(lineInput, "quit\n") == 0 || feof(stdin))
+      {
+        return EXIT_SUCCESS;
+      }
+      int a = evaluate(lineInput);
+    }
+  }
+
 }
 
 char *readALine()
@@ -73,25 +98,29 @@ void printHostName()
 int evaluate(char *line)
 {
   char* argv[arrSize]; //array of pointers to chars
+
   parseLine(line, argv);
-  int a = isBuiltIn(argv);
 
-  if(argv[0] == NULL)
-  {
-    return 0; //ignore empty lines
-  }
+  int a = isReDirect(argv);
 
-  if (a == 1)
+  if(a == 0)
   {
-    runBuiltIn(argv);
-  }
-  else if (a == 0)
-  {
-    printf("%s", "hey");
-    forkProgram(argv);
+    if(argv[0] == NULL)
+    {
+      return 0; //ignore empty lines
+    }
+
+    if (isBuiltIn(argv) == 1)
+    {
+      runBuiltIn(argv);
+    }
+    else
+    {
+      forkProgram();
+      return 1;
+    }
     return 1;
   }
-  return 1;
 }
 
 void parseLine(char *line, char* argv[arrSize])
@@ -110,12 +139,13 @@ void parseLine(char *line, char* argv[arrSize])
     argv[counter] = token;
     counter++;
   }
+  actualLength = counter-1;
 }
 
 int runBuiltIn(char* argv[arrSize])
 {
   int i;
-  for(i = 0; i < sizeof(builtin_command) / sizeof(builtin_command[0]); i++)
+  for(i = 0; i < commandSize; i++)
   {
     if(strcmp(argv[0], builtin_command[i]) == 0)
     {
@@ -124,6 +154,66 @@ int runBuiltIn(char* argv[arrSize])
   }
   return 0;
 }
+
+void redirect(char* argv[arrSize], int flag, int i)
+{
+  int j = i;
+  int in, out;
+  pid_t pid;
+  int savedin = dup(0);
+  int savedout = dup(1);
+
+  pid = fork();
+
+  if(pid == 0)//child
+  {
+
+      if(flag == 1) // >
+      {
+        int output = open(argv[j + 1], O_WRONLY|O_CREAT,S_IRWXU|S_IRWXG|S_IRWXO);
+				dup2(output, 1);
+				close(output);
+				argv[j] = NULL;
+        argv[j+1] = NULL;
+				++j;
+      }
+
+      if(flag == 2) // <
+      {
+        int input = open(argv[j + 1], O_CREAT | O_RDONLY, 0666);
+				dup2(input, 0);
+				close(input);
+				argv[i] = NULL;
+        argv[j+1] = NULL;
+				++j;
+      }
+
+      if(flag == 3) // >>
+      {
+        int output = open(argv[j + 1], O_WRONLY | O_APPEND | O_CREAT, 0666);
+				dup2(output, 1);
+				close(output);
+				argv[j] = NULL;
+        argv[j+1] = NULL;
+				++j;
+      }
+
+
+      execvp(argv[0], argv); //////////////////////////
+  }
+
+  else if(pid > 0)//parent
+  {
+    waitpid(pid, NULL, WCONTINUED);
+  }
+
+  dup2(savedin, 0);
+  close(savedin);
+  dup2(savedout, 1);
+  close(savedout);
+
+}
+
 
 void forkProgram(char* argv[arrSize])
 {
@@ -153,5 +243,35 @@ void forkProgram(char* argv[arrSize])
     }
   }
 
+}
+
+int isReDirect(char* argv[arrSize])
+{
+  int redirected = 0;
+  int i = 0;
+  while(argv[i] != NULL)
+  {
+    if(strcmp(argv[i], ">") == 0)
+    {
+      redirect(argv, 1, i);
+      redirected = 1;
+    }
+
+    if(strcmp(argv[i], "<") == 0)
+    {
+      redirect(argv, 2, i);
+      redirected = 1;
+    }
+
+    if(strcmp(argv[i], ">>") == 0)
+    {
+      redirect(argv, 3, i);
+      redirected = 1;
+    }
+
+    i++;
+
+  }
+    return redirected;
 
 }

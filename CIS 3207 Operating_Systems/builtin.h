@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <sys/ioctl.h>
 
 
 int shell_cd(char **args);
@@ -71,7 +72,16 @@ int shell_cd(char **args)
 
 int shell_clr(char **args)
 {
-  system("clear");
+  int i;
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+
+  for(i = 0; i < w.ws_row; i++)
+  {
+    puts("");
+  }
+
+  printf("\033[%dA", w.ws_row);
 }
 
 int shell_dir(char **args)
@@ -120,6 +130,11 @@ int shell_echo(char **args)
 
 int shell_help(char **args)
 {
+
+  int i;
+  struct winsize w;
+  ioctl(0, TIOCGWINSZ, &w);
+
   // FILE *fp;
   // int a = shell_clr(args);
   // int c;
