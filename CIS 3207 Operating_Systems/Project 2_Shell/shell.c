@@ -74,10 +74,13 @@ int main(int argc, char* argv[])
 
         fp = fopen(commandFile[0], "r"); //opens the batchfile for read only
 
-        fgets(input, sizeof(input), fp); //reads line from file
+        while(fgets(input, sizeof(input), fp) != NULL) //reads line from file
+        {
+          lineRead = input; //sets input to line read
+          int b = evaluate(lineRead); //passes line read through evaluate
+        }
+
         fclose(fp); //closes file
-        lineRead = input; //sets input to line read
-        int b = evaluate(lineRead); //passes line read through evaluate
     }
 
     else //no batchfile from command line
@@ -171,7 +174,7 @@ int evaluate(char *line)
 void parseLine(char *line, char* argv[arrSize])
 {
     char* token; //saves each string
-    const char t[] = {" /\n"}; //separaters by which to divide the raw input
+    const char t[] = {" \n"}; //separaters by which to divide the raw input
     int counter = 0; //to keep track of cycling through the input
 
     token = strtok(line, t); //saves the first work

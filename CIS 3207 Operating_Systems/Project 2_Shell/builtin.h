@@ -185,7 +185,7 @@ int shell_help(char **args)
 
   char manualFile[1024]; //reads lines from file
     FILE *fp; //file pointer to open file
-    fp=fopen("UserManual.txt", "r"); //opens user manual for read only
+    fp=fopen("readme", "r"); //opens user manual for read only
     while(fgets(manualFile, 1024, fp)!=NULL) //while not end of file
     {
         printf("%s", manualFile); // print the string
