@@ -1,0 +1,49 @@
+*------------------RUNNING THE PROGRAM-----------------------------------------*
+To run the program, type in make and press enter, then ./serv [port number] dictionary.txt
+
+example
+
+root@kali:~/Desktop# make
+rm -rf serv *.dSYM
+gcc -g -Wall -pthread -o serv main.c
+root@kali:~/Desktop# ./serv 7272 dictionary.txt
+
+then on client
+root@kali:~/Desktop# netcat localhost 7272
+
+
+then it should say on the server
+accepted connection from localhost: [number]
+
+
+Due to the complexity of synchronization for multi-thread programming, there may be a lot of different implementations of the consumer-producer model.
+So it's necessary to provide a documentation to illustrate your design. For the documentation, make sure it contains the following information:
+
+How many types of synchronization tools (e.g. Semaphore, Condition variable, mutex) do you use, please list them all with the variable name and the number of .instances.
+I used the Semaphore and mutexes.
+typedef struct {
+    int *buf; //buffer array
+    int capacity; //max
+    int front; //first
+    int rear; //last
+    int size; //size of queue
+    sem_t mutex; //semaphore binary
+    sem_t slots; //semaphore
+    sem_t items; //semaphore
+} queue;
+
+Above is my declaration of the buffer array which is the queue that I used to store the words in the Producer-Consumer synchronization tool.
+
+Mutex used: 10 instances
+Capacity used: 5 instances
+Front: 4 instances
+Rear: 4 instances
+Size: 32 instances
+Slots: 7 instances
+Items: 8 instances
+
+Draw a graph to show the synchronization conditions, just like the one shown in the lecture notes (first week of October/page23).
+make sure your comments of the code is detailed enough.
+
+In the attached conditions graph, Thread A B and C represent the worker threads that are working in the main.c program. True parallelism is possible
+as well as synchronization conditions since the worker threads function with semaphore values that allow for them to work without colliding with each other.

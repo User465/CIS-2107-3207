@@ -349,7 +349,8 @@ char **makeDictionary(char *dictionaryName) {
 
     fp = fopen(dictionaryName, "r"); //opens file
     while (fgets(line, sizeof(line), fp)) {
-        if ((dict[i] = malloc(strlen(line) * sizeof(char *) + 1)) == NULL){  //puts word into array
+        if ((dict[i] = malloc(strlen(line) * sizeof(char *) + 1)) == NULL)//puts word into array
+        {
             fprintf(stderr, "error loading word into dict array.\n");
             return NULL;
         }
